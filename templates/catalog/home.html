@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cinematic archaive</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <main class="page-shell">
+        <p class="eyebrow">CINEMATIC ARCHIVE</p>
+        <h1>영화를 기록하고,<br>다시 꺼내보세요.</h1>
+        <p class="intro">Cinematic archaive의 첫 화면입니다. Django MTV와 HTML, CSS, JavaScript가 연결되어 있습니다.</p>
+        <button class="action-button" type="button" id="welcome-button">아카이브 시작하기</button>
+        <p class="status" id="status-message" aria-live="polite"></p>
+    </main>
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
