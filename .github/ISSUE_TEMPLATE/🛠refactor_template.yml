@@ -1,0 +1,26 @@
+name: "♻️ Refactor"
+description: "코드 리팩토링"
+labels: ["refactor"]
+body:
+  - type: textarea
+    attributes:
+      label: 🔍 리팩토링 대상 설명
+      description: 어떤 부분을 리팩토링할지와 그 이유를 작성해 주세요.
+      placeholder: 중복된 코드 제거, 구조 개선 등
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: ✅ 작업할 항목
+      description: 해야 할 리팩토링 작업을 체크박스로 작성해 주세요.
+      placeholder: 예) - [ ] Form 컴포넌트 useReducer로 전환
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 💡 기대 효과
+      description: 리팩토링 후 기대되는 개선 사항이 있다면 작성해 주세요.
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료
+      description: 참고 자료나 관련 커밋 링크가 있다면 추가해주세요.
