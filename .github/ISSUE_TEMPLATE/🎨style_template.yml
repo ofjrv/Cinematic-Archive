@@ -1,0 +1,26 @@
+name: "💅 Style"
+description: "스타일/디자인 관련 작업"
+labels: ["style"]
+body:
+  - type: textarea
+    attributes:
+      label: 🎨 스타일 변경 설명
+      description: 어떤 스타일 요소를 변경할지 작성해 주세요.
+      placeholder: 색상, 폰트, 마진/패딩, 반응형 설정 등
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: ✅ 작업 내역
+      description: 스타일 관련 변경 작업을 체크박스로 나열해 주세요.
+      placeholder: 예) - [ ] 버튼 hover 색상 변경
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 🎯 화면 영향
+      description: 해당 변경이 영향을 주는 화면이나 컴포넌트를 작성해 주세요.
+  - type: textarea
+    attributes:
+      label: 🙋🏻 참고 자료
+      description: 디자인 가이드, 피그마 링크 등 참고할 자료가 있다면 작성해 주세요.
