@@ -16,9 +16,12 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path, include
+from django.shortcuts import redirect  # <-- redirect 추가
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("", include("catalog.urls")),
+    path('admin/', admin.site.urls),
+    path('user/', include('user.urls')),
+    path("movies/", include("movies.urls")),
+    path('', lambda request: redirect('login')),  # <-- 'http://127.0.0.1:8000/' 접속 시 로그인 페이지로 자동 이동!
 ]
