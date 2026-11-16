@@ -371,6 +371,7 @@
 .editor-fields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-flow: row dense;
   gap: 25px;
 }
 
@@ -559,3 +560,296 @@
   font-size: 12px;
   color: #999999;
 }
+
+/* ==========================================
+   OST 추천 / 검색
+========================================== */
+
+.soundtrack-field {
+  gap: 0;
+  padding: 24px;
+  border: 1px solid #e3e3e3;
+  background: #fafafa;
+}
+
+.soundtrack-field > .field-label { margin-bottom: 4px; }
+
+.ost-block { margin-top: 20px; }
+
+.ost-block-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ost-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #111111;
+}
+
+.ost-subtitle span { color: #999999; font-weight: 400; margin-left: 4px; }
+
+.ost-note { font-size: 11px; color: #999999; }
+
+.ost-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ost-empty {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #999999;
+  padding: 6px 0;
+}
+
+.ost-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid #e3e3e3;
+  animation: ostIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: border-color 0.25s ease;
+}
+
+.ost-card:hover { border-color: #111111; }
+
+@keyframes ostIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ost-cover {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  background: #111111;
+  overflow: hidden;
+}
+
+.ost-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.ost-cover-empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  background:
+    radial-gradient(circle, #ffffff 0 3%, #111111 3.5% 22%, transparent 22.5%),
+    repeating-radial-gradient(circle, #111111 0 1.5px, #262626 1.5px 3px);
+}
+
+
+.ost-info { flex: 1; min-width: 0; }
+
+.ost-track {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ost-album {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #888888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ost-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 3px 6px;
+  background: #111111;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.ost-action {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  color: #111111;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.ost-action:hover { background: #111111; border-color: #111111; color: #ffffff; }
+
+.ost-action.is-done { border-color: transparent; color: #999999; cursor: default; }
+.ost-action.is-done:hover { background: #ffffff; color: #999999; }
+
+.ost-action.is-remove {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 16px;
+  color: #777777;
+}
+
+.ost-action.is-remove:hover { color: #ffffff; transform: rotate(90deg); }
+
+.ost-search { display: flex; gap: 8px; margin-bottom: 10px; }
+
+.ost-search input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #dddddd;
+  background: #ffffff;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #222222;
+}
+
+.ost-search input:focus { outline: 2px solid #111111; outline-offset: 2px; }
+
+.ost-search button {
+  padding: 0 20px;
+  border: 1px solid #111111;
+  background: #111111;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.ost-search button:hover { background: #444444; }
+
+/* 감상 모드: 고른 OST */
+.view-soundtracks {
+  max-width: 900px;
+  margin: 0 auto 40px;
+}
+
+.view-soundtracks[hidden] { display: none; }
+.view-soundtracks .ost-subtitle { margin-bottom: 10px; text-align: center; }
+
+@media (max-width: 700px) {
+  .ost-list { grid-template-columns: 1fr; }
+  .soundtrack-field { padding: 16px; }
+}
+
+.ost-list.is-single { grid-template-columns: minmax(0, 1fr); }
+
+.ost-open-search {
+  padding: 8px 14px;
+  border: 1px solid #111111;
+  background: #111111;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+.ost-open-search:hover { background: #444444; border-color: #444444; }
+
+.ost-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  animation: ostModalFade 0.3s ease both;
+}
+.ost-modal[hidden] { display: none; }
+
+.ost-modal-content {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  animation: ostModalUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes ostModalFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ostModalUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ost-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #dddddd;
+}
+.ost-modal-header h2 { font-size: 16px; letter-spacing: 1px; margin: 0; }
+
+.ost-modal-close {
+  border: none;
+  background: none;
+  font-size: 26px;
+  line-height: 1;
+  color: #777777;
+  cursor: pointer;
+}
+.ost-modal-close:hover { color: #111111; }
+
+.ost-modal-desc { margin: 16px 0 14px; font-size: 13px; color: #777777; }
+
+.ost-list.is-modal {
+  grid-template-columns: minmax(0, 1fr);
+  overflow-y: auto;
+  min-height: 120px;
+  padding-right: 2px;
+}
+
+.ost-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #dddddd;
+}
+.ost-modal-footer b { color: #111111; }
+
+.ost-done {
+  padding: 12px 24px;
+  border: 1px solid #111111;
+  background: #111111;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+}
+.ost-done:hover { background: #444444; border-color: #444444; }

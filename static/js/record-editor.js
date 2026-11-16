@@ -147,6 +147,10 @@ function setEditMode(editing) {
     "edit-mode",
     editing
   );
+
+  if (typeof renderViewSoundtracks === "function") {
+    renderViewSoundtracks();
+  }
 }
 
 /* ==========================================
@@ -178,6 +182,7 @@ async function loadLP() {
 
   // 제목과 기록
   titleInput.value = lp.title || "";
+  selectedTracks = Array.isArray(lp.soundtracks) ? lp.soundtracks : [];
   memoInput.value = lp.back?.text || "";
 
   // 템플릿
@@ -352,6 +357,7 @@ async function saveLP() {
       title: title,
       coverImage: coverImage,
       isPublic: getIsPublic(),
+      soundtracks: selectedTracks,
 
       front: {
         ...(currentLP?.front || {}),
@@ -415,5 +421,234 @@ saveButton.addEventListener("click", () => {
    11. 최초 실행
 ========================================== */
 
-loadLP();
+/* ==========================================
+   OST 추천 / 검색
+========================================== */
+
+let selectedTracks = [];
+let recommendTimer = null;
+
+const escapeHTML = text => String(text ?? "").replace(/[&<>"']/g, c => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[c]));
+
+function buildSoundtrackField() {
+  const titleGroup = titleInput.closest(".field-group");
+  if (!titleGroup) return;
+
+  const group = document.createElement("div");
+  group.className = "field-group full-width soundtrack-field";
+  group.innerHTML = `
+    <span class="field-label">SOUNDTRACK</span>
+
+    <div class="ost-block">
+      <div class="ost-block-head">
+        <p class="ost-subtitle" id="ostRecommendTitle">RECOMMENDED</p>
+        <span class="ost-note">영화 제목에 맞춰 추천돼요</span>
+      </div>
+      <div class="ost-list is-single" id="ostRecommendList"></div>
+    </div>
+
+    <div class="ost-block">
+      <div class="ost-block-head">
+        <p class="ost-subtitle">SELECTED <span id="ostSelectedCount">00</span></p>
+        <button type="button" class="ost-open-search" id="ostOpenSearch">+ SEARCH OST</button>
+      </div>
+      <div class="ost-list is-selected" id="ostSelectedList"></div>
+    </div>
+  `;
+  titleGroup.after(group);
+
+  const modal = document.createElement("div");
+  modal.className = "ost-modal";
+  modal.id = "ostSearchModal";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="ost-modal-content" role="dialog" aria-modal="true" aria-labelledby="ostModalTitle">
+      <div class="ost-modal-header">
+        <h2 id="ostModalTitle">SEARCH OST</h2>
+        <button type="button" class="ost-modal-close" data-ost-close aria-label="닫기">&times;</button>
+      </div>
+      <p class="ost-modal-desc">영화 OST 중에서 찾아 LP에 추가해요.</p>
+      <form class="ost-search" id="ostSearchForm">
+        <input type="search" id="ostSearchInput" placeholder="영화 제목, 곡 이름, 아티스트로 검색" autocomplete="off">
+        <button type="submit">SEARCH</button>
+      </form>
+      <div class="ost-list is-modal" id="ostSearchList"></div>
+      <div class="ost-modal-footer">
+        <span class="ost-note">선택한 곡 <b id="ostModalCount">00</b></span>
+        <button type="button" class="ost-done" data-ost-close>DONE</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+
+  const openSearch = () => {
+    modal.hidden = false;
+    document.getElementById("ostSearchInput").focus();
+  };
+  const closeSearch = () => {
+    modal.hidden = true;
+    document.getElementById("ostOpenSearch").focus();
+  };
+
+  document.getElementById("ostOpenSearch").addEventListener("click", openSearch);
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal || event.target.closest("[data-ost-close]")) closeSearch();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !modal.hidden) closeSearch();
+  });
+
+  document.getElementById("ostSearchForm").addEventListener("submit", event => {
+    event.preventDefault();
+    searchTracks(document.getElementById("ostSearchInput").value);
+  });
+
+  modal.addEventListener("click", handleTrackAction);
+  group.addEventListener("click", handleTrackAction);
+
+  function handleTrackAction(event) {
+    const button = event.target.closest("[data-track-action]");
+    if (!button) return;
+
+    const card = button.closest(".ost-card");
+    const track = JSON.parse(card.dataset.track);
+
+    if (button.dataset.trackAction === "add") addTrack(track);
+    else removeTrack(track.id);
+  }
+
+  titleInput.addEventListener("input", () => {
+    clearTimeout(recommendTimer);
+    recommendTimer = setTimeout(loadRecommendations, 500);
+  });
+}
+
+function trackCardHTML(track, mode) {
+  const isSelected = selectedTracks.some(t => t.id === track.id);
+  const cover = track.coverUrl
+    ? `<img src="${escapeHTML(track.coverUrl)}" alt="">`
+    : `<span class="ost-cover-empty">${escapeHTML((track.albumTitle || "?").charAt(0))}</span>`;
+
+  let action = "";
+  if (mode === "view") {
+    action = "";
+  } else if (mode === "selected") {
+    action = `<button type="button" class="ost-action is-remove" data-track-action="remove" aria-label="${escapeHTML(track.trackName)} 빼기">×</button>`;
+  } else if (isSelected) {
+    action = `<span class="ost-action is-done">ADDED</span>`;
+  } else {
+    action = `<button type="button" class="ost-action" data-track-action="add" aria-label="${escapeHTML(track.trackName)} 추가">+ ADD</button>`;
+  }
+
+  return `
+    <div class="ost-card" data-track='${escapeHTML(JSON.stringify(track))}'>
+      <div class="ost-cover">${cover}</div>
+      <div class="ost-info">
+        <p class="ost-track">${escapeHTML(track.trackName)}</p>
+        <p class="ost-album">${escapeHTML(track.albumTitle)}</p>
+        ${track.recommended ? '<span class="ost-badge">RECOMMENDED</span>' : ""}
+      </div>
+      ${action}
+    </div>`;
+}
+
+function renderTrackList(listId, tracks, mode, emptyText) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+  list.innerHTML = tracks.length
+    ? tracks.map(track => trackCardHTML(track, mode)).join("")
+    : `<p class="ost-empty">${emptyText}</p>`;
+}
+
+let lastRecommended = [];
+let lastSearched = [];
+
+function renderSoundtracks() {
+  renderTrackList("ostRecommendList", lastRecommended, "add",
+    titleInput.value.trim() ? "추천할 OST를 찾지 못했어요. 아래에서 직접 검색해보세요." : "LP TITLE에 영화 제목을 입력하면 추천돼요.");
+  renderTrackList("ostSearchList", lastSearched, "add", "검색어를 입력해 OST를 찾아보세요.");
+  renderTrackList("ostSelectedList", selectedTracks, "selected", "아직 고른 곡이 없어요.");
+
+  const count = document.getElementById("ostSelectedCount");
+  if (count) count.textContent = String(selectedTracks.length).padStart(2, "0");
+  const modalCount = document.getElementById("ostModalCount");
+  if (modalCount) modalCount.textContent = String(selectedTracks.length).padStart(2, "0");
+
+  renderViewSoundtracks();
+}
+
+async function loadRecommendations() {
+  const title = titleInput.value.trim();
+  const heading = document.getElementById("ostRecommendTitle");
+  if (heading) heading.textContent = title ? `RECOMMENDED FOR "${title.toUpperCase()}"` : "RECOMMENDED";
+
+  try {
+    lastRecommended = title ? await API.music.recommend(title, 1) : [];
+  } catch (error) {
+    console.error("OST 추천 실패:", error);
+    lastRecommended = [];
+  }
+  renderSoundtracks();
+}
+
+async function searchTracks(query) {
+  if (!query.trim()) {
+    lastSearched = [];
+    renderSoundtracks();
+    return;
+  }
+  try {
+    lastSearched = await API.music.search(query);
+    renderSoundtracks();
+    if (!lastSearched.length) {
+      document.getElementById("ostSearchList").innerHTML =
+        '<p class="ost-empty">검색 결과가 없어요.</p>';
+    }
+  } catch (error) {
+    console.error("OST 검색 실패:", error);
+    document.getElementById("ostSearchList").innerHTML =
+      '<p class="ost-empty">검색에 실패했어요. 잠시 후 다시 시도해주세요.</p>';
+  }
+}
+
+function addTrack(track) {
+  if (selectedTracks.some(t => t.id === track.id)) return;
+  selectedTracks.push(track);
+  renderSoundtracks();
+}
+
+function removeTrack(trackId) {
+  selectedTracks = selectedTracks.filter(t => t.id !== trackId);
+  renderSoundtracks();
+}
+
+function renderViewSoundtracks() {
+  const preview = document.querySelector(".lp-preview");
+  if (!preview) return;
+
+  let box = document.getElementById("viewSoundtracks");
+  if (!box) {
+    box = document.createElement("section");
+    box.id = "viewSoundtracks";
+    box.className = "view-soundtracks";
+    preview.after(box);
+  }
+
+  box.hidden = isEditMode || selectedTracks.length === 0;
+  box.innerHTML = `
+    <p class="ost-subtitle">SOUNDTRACK</p>
+    <div class="ost-list">
+      ${selectedTracks.map(track => trackCardHTML(track, "view")).join("")}
+    </div>`;
+}
+
+buildSoundtrackField();
+
+loadLP().then(() => {
+  renderSoundtracks();
+  loadRecommendations();
+});
 setEditMode(isEditMode);

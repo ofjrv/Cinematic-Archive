@@ -15,6 +15,8 @@
 
 html { scrollbar-gutter: stable; }
 
+body { overflow-x: clip; }
+
 body {
   font-family: var(--font-base);
   color: var(--color-text);
@@ -75,4 +77,15 @@ main { min-height: calc(100svh - 64px); padding: 48px 0; }
   padding: 24px 0;
   text-align: center;
   font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .site-header .container { padding: 0 16px; }
+  .logo { gap: 8px; font-size: 15px; }
+  .logo img { height: 24px; }
+  .nav { gap: 14px; font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+  .logo span { display: none; }
 }

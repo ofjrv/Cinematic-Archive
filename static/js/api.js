@@ -77,6 +77,26 @@ const mock = {
       back: { backgroundColor: "#777777", textColor: "#ffffff", text: `${lp.title} 를 보고 남긴 기록입니다.`, ...lp.back }
     };
   },
+  ostCatalog: [
+    { id: "t-lll-1", trackName: "City of Stars", albumTitle: "La La Land (Original Motion Picture Soundtrack)", artist: "Ryan Gosling, Emma Stone", movieTitle: "La La Land" },
+    { id: "t-lll-2", trackName: "Another Day of Sun", albumTitle: "La La Land (Original Motion Picture Soundtrack)", artist: "La La Land Cast", movieTitle: "La La Land" },
+    { id: "t-lll-3", trackName: "Mia & Sebastian's Theme", albumTitle: "La La Land (Original Motion Picture Soundtrack)", artist: "Justin Hurwitz", movieTitle: "La La Land" },
+    { id: "t-lll-4", trackName: "Audition (The Fools Who Dream)", albumTitle: "La La Land (Original Motion Picture Soundtrack)", artist: "Emma Stone", movieTitle: "La La Land" },
+    { id: "t-int-1", trackName: "Cornfield Chase", albumTitle: "Interstellar (Original Motion Picture Soundtrack)", artist: "Hans Zimmer", movieTitle: "Interstellar" },
+    { id: "t-int-2", trackName: "No Time for Caution", albumTitle: "Interstellar (Original Motion Picture Soundtrack)", artist: "Hans Zimmer", movieTitle: "Interstellar" },
+    { id: "t-inc-1", trackName: "Time", albumTitle: "Inception (Music from the Motion Picture)", artist: "Hans Zimmer", movieTitle: "Inception" },
+    { id: "t-her-1", trackName: "The Moon Song", albumTitle: "Her (Original Score)", artist: "Karen O", movieTitle: "Her" },
+    { id: "t-wpl-1", trackName: "Whiplash", albumTitle: "Whiplash (Original Motion Picture Soundtrack)", artist: "Hank Levy", movieTitle: "Whiplash" },
+    { id: "t-wpl-2", trackName: "Caravan", albumTitle: "Whiplash (Original Motion Picture Soundtrack)", artist: "Duke Ellington", movieTitle: "Whiplash" },
+    { id: "t-aft-1", trackName: "Tender", albumTitle: "Aftersun (Original Motion Picture Soundtrack)", artist: "Oliver Coates", movieTitle: "Aftersun" },
+    { id: "t-dun-1", trackName: "A Time of Quiet Between the Storms", albumTitle: "Dune: Part Two (Original Motion Picture Soundtrack)", artist: "Hans Zimmer", movieTitle: "Dune: Part Two" },
+    { id: "t-pl-1", trackName: "Quiet Eyes", albumTitle: "Past Lives (Original Motion Picture Soundtrack)", artist: "Grizzly Bear", movieTitle: "Past Lives" },
+    { id: "t-ame-1", trackName: "Comptine d'un autre été", albumTitle: "Amélie (Original Soundtrack)", artist: "Yann Tiersen", movieTitle: "Amélie" }
+  ],
+  matchMovie(track, q) {
+    const t = q.trim().toLowerCase();
+    return track.movieTitle.toLowerCase().includes(t) || t.includes(track.movieTitle.toLowerCase());
+  },
   publicLPs(friendId) {
     return (this.friendLPs[friendId] || [])
       .filter((lp) => lp.isPublic !== false)
@@ -121,6 +141,25 @@ const API = {
       try { return await apiRequest("/users/me"); } catch (e) { return null; }
     },
     isLoggedIn: () => !!localStorage.getItem(TOKEN_KEY)
+  },
+
+  music: {
+    recommend(movieTitle, limit = 4) {
+      if (!USE_MOCK) return apiRequest(`/music/recommendations?movie=${encodeURIComponent(movieTitle)}&limit=${limit}`);
+      const list = movieTitle.trim()
+        ? mock.ostCatalog.filter((t) => mock.matchMovie(t, movieTitle)).slice(0, limit)
+        : [];
+      return mock.wait(list.map((t) => ({ ...t, coverUrl: "", recommended: true })));
+    },
+    search(query) {
+      if (!USE_MOCK) return apiRequest(`/music/search?q=${encodeURIComponent(query)}&type=ost`);
+      const q = query.trim().toLowerCase();
+      const list = q
+        ? mock.ostCatalog.filter((t) =>
+            [t.trackName, t.albumTitle, t.artist, t.movieTitle].some((v) => v.toLowerCase().includes(q)))
+        : [];
+      return mock.wait(list.slice(0, 8).map((t) => ({ ...t, coverUrl: "", recommended: false })));
+    }
   },
 
   account: {
