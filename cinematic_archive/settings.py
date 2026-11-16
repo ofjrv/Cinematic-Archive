@@ -123,7 +123,6 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-
 # Media files (User uploads)
 
 MEDIA_URL = "media/"
@@ -138,3 +137,7 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+
+AUTH_USER_MODEL = 'user.User'
+
