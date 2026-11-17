@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>카드 상세 (백엔드 테스트)</title>
+</head>
+<body>
+  <h1>{{ card.music.music_title }}</h1>
+  <p>아티스트: {{ card.music.artist }}</p>
+
+  {% if card.music.cover_url %}
+    <img src="{{ card.music.cover_url }}" alt="앨범 커버" width="300">
+  {% else %}
+    <p>(앨범 커버 없음)</p>
+  {% endif %}
+
+  {% if card.card_image %}
+    <h2>완성된 카드</h2>
+    <img src="{{ card.card_image.url }}" alt="카드 이미지" width="300">
+  {% endif %}
+
+  <h2>메모</h2>
+  <p>{{ card.memo|default:"(메모 없음)"|linebreaksbr }}</p>
+
+  <p>작성자: {{ card.user }}</p>
+  <p>만든 날짜: {{ card.created_at|date:"Y-m-d H:i" }}</p>
+
+  <a href="{% url 'cards:card_create' %}">새 카드 만들기</a>
+</body>
+</html>
