@@ -54,23 +54,24 @@
         }
 
         .movie-poster {
+        width: 100%;
+        height: 250px;
+        object-fit: cover;
+        border-radius: 3px;
+        background: #242424;
+        }
+
+        .no-poster {
             height: 250px;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 15px;
             text-align: center;
+            color: var(--muted);
+            background: #242424;
             border-radius: 3px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
         }
-
-        .poster-1 { background: linear-gradient(145deg, #5b3027, #171716); }
-        .poster-2 { background: linear-gradient(145deg, #243b56, #10151c); }
-        .poster-3 { background: linear-gradient(145deg, #bd7650, #38233f); }
-        .poster-4 { background: linear-gradient(145deg, #55505d, #171716); }
-        .poster-5 { background: linear-gradient(145deg, #497c9b, #d18b9d); }
 
         .movie-card h3 {
             margin: 12px 0 5px;
@@ -93,7 +94,8 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .movie-poster {
+            .movie-poster,
+            .no-poster {
                 height: 210px;
             }
         }
@@ -129,26 +131,38 @@
             <p class="intro">영화 목록</p>
         {% endif %}
 
-        {% if movies %}
+        {% if error %}
+            <p class="empty-message">{{ error }}</p>
+
+        {% elif movies %}
             <div class="movie-list">
                 {% for movie in movies %}
-                    <div class="movie-card">
-                        <div class="movie-poster {{ movie.color }}">
-                            {{ movie.title }}
-                        </div>
+                    <a class="movie-card" href="{% url 'movies:movie_detail' movie.id %}">
+                        {% if movie.poster_path %}
+                            <img
+                                class="movie-poster"
+                                src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                                alt="{{ movie.title }} 포스터"
+                            >
+                        {% else %}
+                            <div class="no-poster">
+                                포스터 이미지 없음
+                            </div>
+                        {% endif %}
 
                         <h3>{{ movie.title }}</h3>
                         <p>{{ movie.year }} · {{ movie.genre }}</p>
-                    </div>
+                    </a>
                 {% endfor %}
             </div>
-        {% else %}
+
+        {% elif query %}
             <p class="empty-message">
                 검색 결과가 없습니다.
                 다른 영화 제목을 입력해 보세요.
             </p>
         {% endif %}
-
+        
     </main>
 </body>
 </html>
