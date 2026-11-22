@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "cards",
     "gallery",
     "user",
+    "friends",
 ]
 
 MIDDLEWARE = [
