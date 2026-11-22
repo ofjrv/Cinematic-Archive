@@ -23,5 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('user.urls')),
     path('cards/', include('cards.urls')),
+    path("movies/", include("movies.urls")),
     path('', lambda request: redirect('login')),  # <-- 'http://127.0.0.1:8000/' 접속 시 로그인 페이지로 자동 이동!
 ]
