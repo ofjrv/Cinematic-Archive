@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ owner.username }}'s Shared LP Collection - CinematicArchive</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #ffffff;
+            color: #111111;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            height: 64px;
+            padding: 0 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #efefef;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            color: #111111;
+        }
+
+        .brand-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #111111;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-dot::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffffff;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1120px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 56px 24px 80px;
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            color: #888888;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .page-header {
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 36px;
+        }
+
+        h1 {
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #777777;
+        }
+
+        .lp-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        @media (max-width: 960px) {
+            .lp-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .lp-card {
+            aspect-ratio: 1 / 1;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #ececec;
+        }
+
+        .lp-meta-top,
+        .lp-meta-bottom {
+            font-size: 9px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.75;
+        }
+
+        .lp-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            word-break: keep-all;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: #888888;
+            border-top: 1px solid #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a class="brand" href="/">
+            <span class="brand-dot"></span>
+            <span>CinematicArchive</span>
+        </a>
+    </header>
+
+    <main>
+        <div class="eyebrow">Shared Archive</div>
+        <div class="page-header">
+            <h1>{{ owner.username }}'s LP Collection.</h1>
+            <p class="subtitle">공개로 공유된 영화 기록 컬렉션입니다.</p>
+        </div>
+
+        {% if lps %}
+        <div class="lp-grid">
+            {% for lp in lps %}
+            <article class="lp-card" style="
+              background-color: {{ lp.front_bg_color }};
+              color: {{ lp.front_text_color }};
+              {% if lp.cover_image %}background-image: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.28)), url('{{ lp.cover_image.url }}');{% endif %}
+            ">
+                <div class="lp-meta-top">Cinematic Archive</div>
+                <div class="lp-title">{{ lp.title }}</div>
+                <div class="lp-meta-bottom">SIDE A · {{ forloop.counter|stringformat:"03d" }}</div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="subtitle">공유 가능한 공개(PUBLIC) LP가 없습니다.</p>
+        {% endif %}
+    </main>
+
+    <footer>© 2026 WAGI Web FE</footer>
+</body>
+
+</html>

@@ -1,0 +1,377 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My LP Collection - CinematicArchive</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #ffffff;
+            color: #111111;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            height: 64px;
+            padding: 0 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #efefef;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 15px;
+            text-decoration: none;
+            color: #111111;
+        }
+
+        .brand-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #111111;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-dot::after {
+            content: "";
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffffff;
+        }
+
+        nav {
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #444444;
+            font-weight: 500;
+        }
+
+        nav a.active {
+            color: #111111;
+            font-weight: 700;
+        }
+
+        main {
+            flex: 1;
+            max-width: 1120px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 56px 24px 80px;
+        }
+
+        .eyebrow {
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            color: #888888;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 36px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            font-size: 42px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            font-size: 14px;
+            color: #777777;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 38px;
+            padding: 0 18px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            text-decoration: none;
+            cursor: pointer;
+            border: 1px solid #111111;
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            color: #111111;
+        }
+
+        .btn-dark {
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .lp-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 960px) {
+            .lp-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .lp-card {
+            aspect-ratio: 1 / 1;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #ececec;
+        }
+
+        .lp-card.editing {
+            cursor: grab;
+            outline: 2px dashed #111111;
+        }
+
+        .lp-meta-top {
+            font-size: 9px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.75;
+        }
+
+        .lp-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            word-break: keep-all;
+        }
+
+        .lp-meta-bottom {
+            font-size: 9px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            opacity: 0.75;
+        }
+
+        .share-box {
+            border-top: 1px solid #e5e5e5;
+            padding-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .share-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .share-input {
+            height: 36px;
+            min-width: 280px;
+            padding: 0 12px;
+            border: 1px solid #cccccc;
+            font-size: 13px;
+            color: #333333;
+            background: #fafafa;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: #888888;
+            border-top: 1px solid #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a class="brand" href="/">
+            <span class="brand-dot"></span>
+            <span>CinematicArchive</span>
+        </a>
+        <nav>
+            <a href="/">Home</a>
+            <a class="active" href="{% url 'gallery:my_gallery' %}">Record</a>
+            <a href="/user/">User</a>
+            <a href="#">Friends</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="eyebrow">Your Personal Archive</div>
+        <div class="page-header">
+            <div>
+                <h1>My LP Collection.</h1>
+                <p class="subtitle">Every film you keep becomes a record.</p>
+            </div>
+            <div class="actions">
+                <button type="button" id="editOrderBtn" class="btn btn-outline">Edit Order</button>
+                <a href="#" class="btn btn-dark">+ Add LP</a>
+            </div>
+        </div>
+
+        {% if lps %}
+        <div class="lp-grid" id="lpGrid">
+            {% for lp in lps %}
+            <article class="lp-card" data-id="{{ lp.id }}" style="
+              background-color: {{ lp.front_bg_color }};
+              color: {{ lp.front_text_color }};
+              {% if lp.cover_image %}background-image: linear-gradient(rgba(0,0,0,0.28), rgba(0,0,0,0.28)), url('{{ lp.cover_image.url }}');{% endif %}
+            ">
+                <div class="lp-meta-top">Cinematic Archive</div>
+                <div class="lp-title">{{ lp.title }}</div>
+                <div class="lp-meta-bottom">
+                    SIDE A · {{ forloop.counter|stringformat:"03d" }}
+                    {% if not lp.is_public %} · PRIVATE{% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="subtitle" style="margin-bottom: 40px;">아직 등록된 LP가 없습니다. <strong>+ ADD LP</strong>를 눌러 첫 기록을 만들어 보세요.
+        </p>
+        {% endif %}
+
+        <div class="share-box">
+            <div>
+                <div class="eyebrow" style="margin-bottom: 4px;">Public Share Link</div>
+                <p class="subtitle" style="margin-top: 0;">공개(PUBLIC)로 설정한 LP를 비회원도 볼 수 있는 공유 링크입니다.</p>
+            </div>
+            <div class="share-controls">
+                <input type="text" id="shareUrlInput" class="share-input" readonly
+                    value="{% if share_url %}{{ share_url }}{% else %}공유 링크가 비활성화되어 있습니다.{% endif %}" />
+                {% if share_url %}
+                <button type="button" id="copyShareBtn" class="btn btn-outline">Copy</button>
+                {% endif %}
+                <form method="post" action="{% url 'gallery:regenerate_share_link' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="rotate" />
+                    <button type="submit" class="btn btn-dark">New Link</button>
+                </form>
+                <form method="post" action="{% url 'gallery:regenerate_share_link' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="toggle" />
+                    <button type="submit" class="btn btn-outline">
+                        {% if share_link.is_active %}Disable{% else %}Enable{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>© 2026 WAGI Web FE</footer>
+
+    <script>
+        const copyBtn = document.getElementById("copyShareBtn");
+        if (copyBtn) {
+            copyBtn.addEventListener("click", () => {
+                const input = document.getElementById("shareUrlInput");
+                navigator.clipboard?.writeText(input.value);
+                copyBtn.textContent = "Copied";
+                setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+            });
+        }
+
+        const editOrderBtn = document.getElementById("editOrderBtn");
+        const grid = document.getElementById("lpGrid");
+        let isEditing = false;
+        let draggedCard = null;
+
+        if (editOrderBtn && grid) {
+            editOrderBtn.addEventListener("click", async () => {
+                isEditing = !isEditing;
+                editOrderBtn.textContent = isEditing ? "Done Order" : "Edit Order";
+                grid.querySelectorAll(".lp-card").forEach((card) => {
+                    card.draggable = isEditing;
+                    card.classList.toggle("editing", isEditing);
+                });
+
+                if (!isEditing) {
+                    const formData = new URLSearchParams();
+                    grid.querySelectorAll(".lp-card").forEach((card) => {
+                        formData.append("order[]", card.dataset.id);
+                    });
+                    await fetch("{% url 'gallery:update_lp_order' %}", {
+                        method: "POST",
+                        headers: {
+                            "X-CSRFToken": "{{ csrf_token }}",
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: formData.toString(),
+                    });
+                }
+            });
+
+            grid.addEventListener("dragstart", (e) => {
+                if (!isEditing) return;
+                draggedCard = e.target.closest(".lp-card");
+            });
+
+            grid.addEventListener("dragover", (e) => {
+                if (!isEditing || !draggedCard) return;
+                e.preventDefault();
+                const target = e.target.closest(".lp-card");
+                if (target && target !== draggedCard) {
+                    const rect = target.getBoundingClientRect();
+                    const after = (e.clientX - rect.left) > rect.width / 2;
+                    grid.insertBefore(draggedCard, after ? target.nextSibling : target);
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
