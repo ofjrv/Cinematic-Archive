@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ movie.title }} | Movie Archive</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        .detail-page {
+            width: min(1000px, calc(100% - 48px));
+            margin: 0 auto;
+            padding: 60px 0;
+        }
+
+        .back-link {
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .detail-content {
+            display: flex;
+            gap: 40px;
+            margin-top: 35px;
+        }
+
+        .detail-poster {
+            width: 300px;
+            height: fit-content;
+            border-radius: 4px;
+        }
+
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-info h1 {
+            font-size: 2.5rem;
+            margin: 0 0 15px;
+        }
+
+        .detail-meta {
+            color: var(--muted);
+            margin-bottom: 25px;
+        }
+
+        .detail-overview {
+            line-height: 1.8;
+        }
+
+        .genre-list {
+            margin: 15px 0;
+        }
+
+        @media (max-width: 600px) {
+            .detail-content {
+                flex-direction: column;
+            }
+
+            .detail-poster {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="detail-page">
+        <a class="back-link" href="{% url 'movies:movie_search' %}">
+            ← 영화 검색으로 돌아가기
+        </a>
+
+        {% if error %}
+            <p>{{ error }}</p>
+
+        {% elif movie %}
+            <div class="detail-content">
+                {% if movie.poster_path %}
+                    <img
+                        class="detail-poster"
+                        src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}"
+                        alt="{{ movie.title }} 포스터"
+                    >
+                {% endif %}
+
+                <div class="detail-info">
+                    <h1>{{ movie.title }}</h1>
+
+                    <p class="detail-meta">
+                        {{ movie.release_date|default:"개봉일 미정" }}
+                        · 평점 {{ movie.vote_average|floatformat:1 }}
+                        · {{ movie.runtime|default:"정보 없음" }}분
+                    </p>
+
+                    <div class="genre-list">
+                        {% for genre in movie.genres %}
+                            {{ genre.name }}{% if not forloop.last %} · {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <h3>줄거리</h3>
+                    <p class="detail-overview">
+                        {{ movie.overview|default:"등록된 줄거리가 없습니다." }}
+                    </p>
+                </div>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html>
