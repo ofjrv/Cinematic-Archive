@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ card.music.music_title }} (백엔드 테스트)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "Segoe UI", sans-serif;
+      background: #fff;
+      color: #111;
+    }
+    .container { max-width: 480px; margin: 80px auto; padding: 0 20px; }
+
+    .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: #888; font-weight: 600; }
+    .title { font-size: 36px; font-weight: 800; margin-top: 8px; }
+    .artist { font-size: 14px; color: #888; margin-bottom: 32px; }
+
+    .label {
+      display: block;
+      font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #444;
+      margin-bottom: 8px;
+    }
+
+    /* 앨범 커버: 정사각형 (LP 자켓 느낌) */
+    .cover {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #f2f2f2;
+      margin-bottom: 32px;
+      display: flex; align-items: center; justify-content: center;
+      color: #aaa; font-size: 12px; letter-spacing: 1px;
+    }
+    .cover img { width: 100%; height: 100%; object-fit: cover; }
+
+    .section { margin-bottom: 28px; }
+    .memo {
+      font-size: 14px; line-height: 1.7; color: #222;
+      padding: 16px; border: 1px solid #eee;
+    }
+
+    .info { border-top: 1px solid #eee; }
+    .info-row {
+      display: flex; justify-content: space-between;
+      padding: 14px 4px; border-bottom: 1px solid #eee;
+      font-size: 13px;
+    }
+    .info-row span:first-child { color: #888; }
+
+    .btn {
+      display: block; height: 48px; line-height: 48px; margin-top: 32px;
+      background: #111; color: #fff; text-align: center; text-decoration: none;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="eyebrow">MY CARD</p>
+    <h1 class="title">{{ card.music.music_title }}</h1>
+    <p class="artist">{{ card.music.artist }}</p>
+
+    <!-- 커버: 완성 카드 이미지 > 앨범 커버 > 없음 순서로 보여 줌 -->
+    <div class="cover">
+      {% if card.card_image %}
+        <img src="{{ card.card_image.url }}" alt="카드 이미지">
+      {% elif card.music.cover_url %}
+        <img src="{{ card.music.cover_url }}" alt="앨범 커버">
+      {% else %}
+        NO COVER
+      {% endif %}
+    </div>
+
+    <div class="section">
+      <span class="label">YOUR MEMORY</span>
+      <p class="memo">{{ card.memo|default:"(메모 없음)"|linebreaksbr }}</p>
+    </div>
+
+    <div class="info">
+      <div class="info-row">
+        <span>작성자</span>
+        <span>{{ card.user }}</span>
+      </div>
+      <div class="info-row">
+        <span>만든 날짜</span>
+        <span>{{ card.created_at|date:"Y.m.d H:i" }}</span>
+      </div>
+    </div>
+
+    <a href="{% url 'cards:card_create' %}" class="btn">NEW CARD</a>
+  </div>
+</body>
+</html>
