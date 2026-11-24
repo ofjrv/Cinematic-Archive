@@ -13,11 +13,11 @@ class Music(models.Model):
         return f"{self.music_title} - {self.artist}"
 
 class Card(models.Model):
-    # 앞면 템플릿 선택지 (LP 모델과 같은 값)
+    # 앞면 템플릿 선택지 (프론트 record-editor.css 클래스 이름과 같은 값)
     class TemplateChoices(models.TextChoices):
         MINIMAL = "minimal", "Minimal"
-        CLASSIC = "classic", "Classic"
-        BOLD = "bold", "Bold"
+        PHOTO = "photo", "Photo"
+        TYPOGRAPHY = "typography", "Typography"
 
     # 작성자 (User 1 : N Card)
     user = models.ForeignKey(
