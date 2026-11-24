@@ -33,6 +33,8 @@
     }
     .cover img { width: 100%; height: 100%; object-fit: cover; }
 
+    .cover-wide { aspect-ratio: 16 / 9; }  /* 뮤비형은 가로로 길게 */
+
     .section { margin-bottom: 28px; }
     .memo {
       font-size: 14px; line-height: 1.7; color: #222;
@@ -61,7 +63,7 @@
     <p class="artist">{{ card.music.artist }}</p>
 
     <!-- 커버: 완성 카드 이미지 > 앨범 커버 > 없음 순서로 보여 줌 -->
-    <div class="cover">
+      <div class="cover {% if not card.music.is_square %}cover-wide{% endif %}">
       {% if card.card_image %}
         <img src="{{ card.card_image.url }}" alt="카드 이미지">
       {% elif card.music.cover_url %}
