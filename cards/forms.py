@@ -5,4 +5,4 @@ from .models import Card
 class CardForm(forms.ModelForm):
     class Meta:
         model = Card
-        fields = ["music", "memo"]  # 사용자가 직접 입력하는 칸만
+        fields = ["memo"]  # 음악은 유튜브 검색 결과에서 골라 view에서 넣음
