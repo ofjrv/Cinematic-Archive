@@ -22,6 +22,7 @@ def search_youtube(q):
             "type": "video",            # 영상만 (채널, 재생목록 제외)
             "videoCategoryId": "10",    # 10 = 음악 카테고리
              "videoEmbeddable": "true",  # 다른 사이트에서 재생 가능한 영상만
+            "regionCode": "KR",         # 한국에서 볼 수 있는 영상 위주로
             "maxResults": 5,            # 5개만
             "key": settings.YOUTUBE_API_KEY,
         },
@@ -79,6 +80,21 @@ def is_square_thumbnail(thumbnail_url, channel=""):
 
     return left_spread < 10 and right_spread < 10
 
+# 고른 유튜브 영상으로 음악 찾기 또는 새로 저장
+def get_or_create_music(request, video_id):
+    music, created = Music.objects.get_or_create(
+        video_id=video_id,
+        defaults={
+            "music_title": request.POST.get(f"title_{video_id}", "제목 없음"),
+            "artist": request.POST.get(f"channel_{video_id}", ""),
+            "cover_url": request.POST.get(f"thumbnail_{video_id}", ""),
+        },
+    )
+    if created:  # 처음 저장하는 음악일 때만 고화질 썸네일 찾기 + 모양 검사
+        music.cover_url = best_thumbnail(music.video_id, music.cover_url)
+        music.is_square = is_square_thumbnail(music.cover_url, music.artist)
+        music.save()
+    return music
 
 # 로그인 안 한 사람은 user 앱의 로그인 페이지('login')로 보냄
 @login_required(login_url="login")
@@ -94,23 +110,10 @@ def card_create(request):
         if not video_id:
             error = "음악을 먼저 골라 주세요."
         elif form.is_valid():
-            # 같은 영상이 이미 저장돼 있으면 그걸 쓰고, 없으면 새로 저장
-            music, created = Music.objects.get_or_create(
-                video_id=video_id,
-                defaults={
-                    "music_title": request.POST.get(f"title_{video_id}", "제목 없음"),
-                    "artist": request.POST.get(f"channel_{video_id}", ""),
-                    "cover_url": request.POST.get(f"thumbnail_{video_id}", ""),
-                },
-            )
-            if created:  # 처음 저장하는 음악일 때만 고화질 썸네일 찾기 + 모양 검사
-                music.cover_url = best_thumbnail(music.video_id, music.cover_url)
-                music.is_square = is_square_thumbnail(music.cover_url, music.artist)
-                music.save()
             card = form.save(commit=False)  # 아직 DB에 저장하지 않음
             card.user = request.user        # 작성자 = 로그인한 사람
-            card.music = music              # 고른 음악 연결
-            card.order = request.user.cards.count() # 갤러리 맨 뒤에 오도록
+            card.music = get_or_create_music(request, video_id)  # 고른 음악 연결
+            card.order = request.user.cards.count()  # 갤러리 맨 뒤에 오도록
             card.save()
             return redirect("cards:card_detail", card_id=card.id)
     else:
@@ -136,3 +139,38 @@ def card_detail(request, card_id):
     # TODO: 갤러리 공유 기능이 생기면 다른 사람도 볼 수 있게 조건 수정
     card = get_object_or_404(Card, id=card_id, user=request.user)
     return render(request, "cards/b_card_detail.html", {"card": card})
+
+@login_required(login_url="login")
+def card_update(request, card_id):
+    # 내 카드만 수정할 수 있음 (없거나 남의 카드면 404)
+    card = get_object_or_404(Card, id=card_id, user=request.user)
+    q = request.GET.get("q", "").strip()
+    videos = []
+    error = ""
+
+    if request.method == "POST":
+        # instance=card: 새로 만들지 말고 '이 카드'를 고치라는 뜻
+        form = CardForm(request.POST, request.FILES, instance=card)
+        if form.is_valid():
+            card = form.save(commit=False)
+            video_id = request.POST.get("video_id", "")
+            if video_id:  # 음악을 새로 골랐을 때만 바꾸기 (안 고르면 원래 음악 유지)
+                card.music = get_or_create_music(request, video_id)
+            card.save()
+            return redirect("cards:card_detail", card_id=card.id)
+    else:
+        form = CardForm(instance=card)  # 기존 값이 채워진 폼
+        if q:
+            try:
+                videos = search_youtube(q)
+            except requests.RequestException:
+                error = "음악을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."
+
+    # 화면은 LP Editor를 그대로 재사용 (card를 넘기면 수정 모드)
+    return render(request, "cards/b_card_create.html", {
+        "form": form,
+        "q": q,
+        "videos": videos,
+        "error": error,
+        "card": card,
+    })
