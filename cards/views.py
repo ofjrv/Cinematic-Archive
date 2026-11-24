@@ -21,6 +21,7 @@ def search_youtube(q):
             "q": q,                     # 검색어
             "type": "video",            # 영상만 (채널, 재생목록 제외)
             "videoCategoryId": "10",    # 10 = 음악 카테고리
+             "videoEmbeddable": "true",  # 다른 사이트에서 재생 가능한 영상만
             "maxResults": 5,            # 5개만
             "key": settings.YOUTUBE_API_KEY,
         },
@@ -87,7 +88,7 @@ def card_create(request):
     error = ""
 
     if request.method == "POST":  # 폼을 제출했을 때
-        form = CardForm(request.POST)
+        form = CardForm(request.POST, request.FILES) # 이미지 파일도 같이 받기
         video_id = request.POST.get("video_id", "")  # 라디오 버튼으로 고른 영상 번호
 
         if not video_id:
@@ -109,6 +110,7 @@ def card_create(request):
             card = form.save(commit=False)  # 아직 DB에 저장하지 않음
             card.user = request.user        # 작성자 = 로그인한 사람
             card.music = music              # 고른 음악 연결
+            card.order = request.user.cards.count() # 갤러리 맨 뒤에 오도록
             card.save()
             return redirect("cards:card_detail", card_id=card.id)
     else:

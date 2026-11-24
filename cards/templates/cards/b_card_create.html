@@ -60,6 +60,19 @@
 
     .error { font-size: 12px; color: #d33; margin-bottom: 16px; }
     .empty { font-size: 12px; color: #888; margin-bottom: 24px; }
+    
+    /* LP 입력칸 */
+    .field input[type="text"], .field input[type="file"] {
+      width: 100%; padding: 12px 14px;
+      border: 1px solid #e0e0e0; font-size: 13px; font-family: inherit;
+    }
+    .field input[type="color"] {
+      width: 64px; height: 36px; padding: 2px;
+      border: 1px solid #e0e0e0; background: #fff; cursor: pointer;
+    }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }  /* 두 칸씩 나란히 */
+    .check { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .hint { font-size: 11px; color: #888; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -80,7 +93,7 @@
     {% endif %}
 
     <!-- 카드 저장 -->
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
 
       <div class="field">
@@ -111,9 +124,57 @@
         {% endif %}
       </div>
 
+      <!-- 폼 입력 오류 (어떤 칸이 잘못됐는지) -->
+      {% if form.errors %}
+        <div class="error">{{ form.errors }}</div>
+      {% endif %}
+
+      <div class="field">
+        <label class="label">LP TITLE</label>
+        {{ form.title }}
+      </div>
+
+      <div class="field">
+        <label class="label">VISIBILITY</label>
+        <label class="check">{{ form.is_public }} 공개 (친구에게 이 LP가 보여요)</label>
+      </div>
+
+      <div class="field">
+        <label class="label">COVER IMAGE</label>
+        {{ form.cover_image }}
+        <p class="hint">안 올리면 고른 음악의 썸네일이 표지가 돼요.</p>
+      </div>
+
+      <div class="field">
+        <label class="label">FRONT TEMPLATE</label>
+        {{ form.front_template }}
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label class="label">FRONT BACKGROUND</label>
+          {{ form.front_bg_color }}
+        </div>
+        <div class="field">
+          <label class="label">FRONT TEXT COLOR</label>
+          {{ form.front_text_color }}
+        </div>
+      </div>
+
       <div class="field">
         <label class="label">YOUR MEMORY</label>
         {{ form.memo }}
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label class="label">BACK BACKGROUND</label>
+          {{ form.back_bg_color }}
+        </div>
+        <div class="field">
+          <label class="label">BACK TEXT COLOR</label>
+          {{ form.back_text_color }}
+        </div>
       </div>
 
       <button type="submit" class="btn btn-full">SAVE CARD</button>
