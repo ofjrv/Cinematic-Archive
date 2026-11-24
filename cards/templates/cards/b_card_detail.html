@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>{{ card.music.music_title }} (백엔드 테스트)</title>
+  <title>{{ card.title }} (백엔드 테스트)</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -13,33 +13,32 @@
     .container { max-width: 480px; margin: 80px auto; padding: 0 20px; }
 
     .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: #888; font-weight: 600; }
-    .title { font-size: 36px; font-weight: 800; margin-top: 8px; }
-    .artist { font-size: 14px; color: #888; margin-bottom: 32px; }
+    .title { font-size: 36px; font-weight: 800; margin: 8px 0 32px; }
 
     .label {
       display: block;
       font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #444;
       margin-bottom: 8px;
     }
-
-    /* 앨범 커버: 정사각형 (LP 자켓 느낌) */
-    .cover {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #f2f2f2;
-      margin-bottom: 32px;
-      display: flex; align-items: center; justify-content: center;
-      color: #aaa; font-size: 12px; letter-spacing: 1px;
-    }
-    .cover img { width: 100%; height: 100%; object-fit: cover; }
-
-    .cover-wide { aspect-ratio: 16 / 9; }  /* 뮤비형은 가로로 길게 */
-
     .section { margin-bottom: 28px; }
-    .memo {
-      font-size: 14px; line-height: 1.7; color: #222;
-      padding: 16px; border: 1px solid #eee;
-    }
+
+    /* LP 앞면 */
+    .front { padding: 20px; }
+    .front-title { font-size: 24px; font-weight: 800; margin-top: 16px; }
+    .front-sub { font-size: 10px; letter-spacing: 1px; margin-top: 4px; opacity: 0.7; }
+
+    /* 표지: 뮤비형은 16:9, 앨범 커버형은 정사각형 */
+    .cover { width: 100%; aspect-ratio: 1 / 1; background: #f2f2f2; }
+    .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cover-wide { aspect-ratio: 16 / 9; }
+
+    /* LP 뒷면 */
+    .back { padding: 20px; min-height: 160px; }
+    .back-title { font-size: 18px; font-weight: 800; margin-bottom: 12px; }
+    .back-memo { font-size: 14px; line-height: 1.7; }
+
+    /* 유튜브 플레이어 */
+    .player { width: 100%; aspect-ratio: 16 / 9; border: 0; }
 
     .info { border-top: 1px solid #eee; }
     .info-row {
@@ -58,27 +57,56 @@
 </head>
 <body>
   <div class="container">
-    <p class="eyebrow">MY CARD</p>
-    <h1 class="title">{{ card.music.music_title }}</h1>
-    <p class="artist">{{ card.music.artist }}</p>
+    <p class="eyebrow">MY LP</p>
+    <h1 class="title">{{ card.title }}</h1>
 
-    <!-- 커버: 완성 카드 이미지 > 앨범 커버 > 없음 순서로 보여 줌 -->
-      <div class="cover {% if not card.music.is_square %}cover-wide{% endif %}">
-      {% if card.card_image %}
-        <img src="{{ card.card_image.url }}" alt="카드 이미지">
-      {% elif card.music.cover_url %}
-        <img src="{{ card.music.cover_url }}" alt="앨범 커버">
-      {% else %}
-        NO COVER
-      {% endif %}
-    </div>
-
+    <!-- LP 앞면: 저장한 배경색·글자색 적용 -->
     <div class="section">
-      <span class="label">YOUR MEMORY</span>
-      <p class="memo">{{ card.memo|default:"(메모 없음)"|linebreaksbr }}</p>
+      <span class="label">FRONT</span>
+      <div class="front" style="background: {{ card.front_bg_color }}; color: {{ card.front_text_color }};">
+        <div class="cover {% if not card.cover_image and not card.music.is_square %}cover-wide{% endif %}">
+          {% if card.cover_image %}
+            <img src="{{ card.cover_image.url }}" alt="표지 이미지">
+          {% elif card.music.cover_url %}
+            <img src="{{ card.music.cover_url }}" alt="음악 썸네일">
+          {% endif %}
+        </div>
+        <p class="front-title">{{ card.title }}</p>
+        <p class="front-sub">SIDE A · {{ card.get_front_template_display }}</p>
+      </div>
     </div>
+
+    <!-- LP 뒷면: 메모 + 뒷면 색 -->
+    <div class="section">
+      <span class="label">BACK</span>
+      <div class="back" style="background: {{ card.back_bg_color }}; color: {{ card.back_text_color }};">
+        <p class="back-title">MY MEMORY</p>
+        <p class="back-memo">{{ card.memo|default:"(메모 없음)"|linebreaksbr }}</p>
+      </div>
+    </div>
+
+    <!-- 유튜브 플레이어 -->
+    {% if card.music.video_id %}
+      <div class="section">
+        <span class="label">NOW PLAYING · {{ card.music.music_title }}</span>
+                <iframe class="player"
+                src="https://www.youtube.com/embed/{{ card.music.video_id }}"
+                title="{{ card.music.music_title }}"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen></iframe>
+      </div>
+    {% endif %}
 
     <div class="info">
+      <div class="info-row">
+        <span>음악</span>
+        <span>{{ card.music.artist }}</span>
+      </div>
+      <div class="info-row">
+        <span>공개 여부</span>
+        <span>{% if card.is_public %}공개{% else %}나만 보기{% endif %}</span>
+      </div>
       <div class="info-row">
         <span>작성자</span>
         <span>{{ card.user }}</span>
@@ -89,7 +117,7 @@
       </div>
     </div>
 
-    <a href="{% url 'cards:card_create' %}" class="btn">NEW CARD</a>
+    <a href="{% url 'cards:card_create' %}" class="btn">NEW LP</a>
   </div>
 </body>
 </html>
