@@ -6,6 +6,8 @@ class Music(models.Model):
     music_title = models.CharField(max_length=200)
     artist = models.CharField(max_length=200)
     cover_url = models.URLField(max_length=500, blank=True)  # 앨범 커버 이미지 주소
+    video_id = models.CharField(max_length=20, blank=True)   # 유튜브 영상 번호 (재생용)
+    is_square = models.BooleanField(default=False)  # True: 앨범 커버형(정사각형), False: 뮤비형(16:9)
 
     def __str__(self):
         return f"{self.music_title} - {self.artist}"
