@@ -1,80 +1,241 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>카드 만들기 (백엔드 테스트)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LP Editor (백엔드 테스트)</title>
+  <!-- 프론트가 만든 LP Editor 디자인 그대로 사용 -->
+  <link rel="stylesheet" href="{% static 'css/record-editor.css' %}">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, "Segoe UI", sans-serif;
-      background: #fff;
-      color: #111;
-    }
-    .container { max-width: 480px; margin: 80px auto; padding: 0 20px; }
+    body { margin: 0; font-family: -apple-system, "Segoe UI", sans-serif; }
 
-    .eyebrow { font-size: 10px; letter-spacing: 1.5px; color: #888; font-weight: 600; }
-    .title { font-size: 36px; font-weight: 800; margin: 8px 0 40px; }
-
-    .label {
-      display: block;
-      font-size: 10px; font-weight: 700; letter-spacing: 1px; color: #444;
-      margin-bottom: 8px;
+    /* ---- 피그마에 없어서 추가한 음악 칸 ---- */
+    .music-search { display: flex; gap: 8px; margin: 10px 0; }
+    .music-search input {
+      flex: 1; border: 1px solid #ddd; background: #fafafa;
+      padding: 12px; font-size: 14px; font-family: inherit;
     }
-
-    /* 검색 */
-    .search { display: flex; gap: 8px; margin-bottom: 32px; }
-    .search input {
-      flex: 1; height: 44px; padding: 0 14px;
-      border: 1px solid #e0e0e0; font-size: 13px;
+    .music-search button {
+      padding: 0 20px; border: 1px solid #111; background: #fff;
+      font-size: 12px; font-weight: 600; letter-spacing: 1px; cursor: pointer;
     }
-
-    /* 폼 입력칸 (Django가 만든 select, textarea에도 적용) */
-    .field { margin-bottom: 24px; }
-    .field select, .field textarea {
-      width: 100%; padding: 12px 14px;
-      border: 1px solid #e0e0e0; font-size: 13px; font-family: inherit;
+    .music-results { display: grid; gap: 8px; margin: 16px 0 30px; }
+    .music-result {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px; border: 1px solid #e3e3e3; cursor: pointer;
     }
-    .field textarea { height: 140px; resize: vertical; }
+    .music-result img { width: 96px; aspect-ratio: 16 / 9; object-fit: cover; }
+    .music-result:has(input:checked) { border-color: #111; }
+    .music-title { font-size: 13px; font-weight: 600; }
+    .music-channel { font-size: 12px; color: #888; margin-top: 4px; }
 
-    /* 버튼 */
-    .btn {
-      height: 44px; padding: 0 20px;
-      background: #111; color: #fff; border: none;
-      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-      cursor: pointer;
-    }
-    .btn-full { width: 100%; height: 48px; }
-    .btn-light { background: #fff; color: #111; border: 1px solid #111; }
+    .form-error { color: #d33; font-size: 12px; margin-bottom: 16px; }
   </style>
 </head>
 <body>
+<main class="lp-editor">
   <div class="container">
-    <p class="eyebrow">CINEMATIC ARCHIVE</p>
-    <h1 class="title">New Card.</h1>
 
-    <!-- 음악 검색 -->
-    <label class="label">SEARCH MUSIC</label>
-    <form method="get" class="search">
-      <input type="text" name="q" value="{{ q }}" placeholder="음악 제목 또는 아티스트">
-      <button type="submit" class="btn btn-light">SEARCH</button>
-    </form>
+    <!-- 상단: 제목 + 버튼 -->
+    <div class="editor-header">
+      <div>
+        <p class="editor-label">YOUR PERSONAL ARCHIVE</p>
+        <h1>{% if card %}EDIT LP{% else %}LP EDITOR{% endif %}</h1>
+        <p>Create your own cinematic memory.</p>
+      </div>
+      <div class="editor-actions">
+        <a href="{% if card %}{% url 'cards:card_detail' card.id %}{% else %}{% url 'gallery:my_gallery' %}{% endif %}" class="back-button">← Back</a>
+        <!-- form="lpForm": 아래쪽 저장 폼 밖에 있어도 그 폼을 제출하는 버튼 -->
+        <button type="submit" id="saveButton" form="lpForm">Save LP</button>
+      </div>
+    </div>
 
-    <!-- 카드 저장 -->
-    <form method="post">
-      {% csrf_token %}
+    <!-- LP 미리보기 -->
+    <section class="lp-preview">
+      <div class="lp-display">
+        <div class="vinyl-record"><div class="vinyl-label"></div></div>
 
-      <div class="field">
-        <label class="label">MUSIC</label>
-        {{ form.music }}
+        <!-- 앞면 -->
+        <div class="lp-cover lp-front template-{{ form.front_template.value }}" id="lpFront"
+             style="background-color: {{ form.front_bg_color.value }}; color: {{ form.front_text_color.value }};
+                    {% if card.cover_image %}background-image: url('{{ card.cover_image.url }}');
+                    {% elif card.music.cover_url %}background-image: url('{{ card.music.cover_url }}');{% endif %}">
+          <div class="cover-content">
+            <span class="cover-small-text">CINEMATIC ARCHIVE</span>
+            <h2 id="previewTitle">{{ form.title.value }}</h2>
+            <span class="cover-number">SIDE A · 001</span>
+          </div>
+        </div>
+
+        <!-- 뒷면 -->
+        <div class="lp-cover lp-back" id="lpBack"
+             style="background-color: {{ form.back_bg_color.value }}; color: {{ form.back_text_color.value }};">
+          <div class="back-content">
+            <span class="back-label">PERSONAL RECORD</span>
+            <h2>MY MEMORY</h2>
+            <p id="previewMemo">{{ form.memo.value|default:"이곳에 나만의 영화 기록이 표시됩니다." }}</p>
+            <span class="back-footer">CINEMATIC ARCHIVE</span>
+          </div>
+        </div>
+      </div>
+      <p class="preview-caption">A MEMORY PRESERVED ON VINYL</p>
+    </section>
+
+    <!-- 편집 패널 -->
+    <section class="editor-panel">
+      <div class="panel-heading">
+        <h2>CUSTOMIZE YOUR LP</h2>
+        <p>Design your own memory.</p>
       </div>
 
-      <div class="field">
-        <label class="label">YOUR MEMORY</label>
-        {{ form.memo }}
-      </div>
+      <!-- 음악 검색 (GET) - 저장 폼과 따로 -->
+      <span class="field-label">MUSIC</span>
+      <form method="get" class="music-search">
+        <input type="text" name="q" value="{{ q }}" placeholder="음악 제목 또는 아티스트">
+        <button type="submit">SEARCH</button>
+      </form>
+      <p class="field-hint">음악을 먼저 검색해서 고른 다음 나머지를 입력해 주세요. (검색하면 입력한 내용이 초기화돼요)</p>
+      
+      {% if card %}
+        <p class="field-hint">지금 음악: <strong>{{ card.music.music_title }}</strong> · {{ card.music.artist }} (바꿀 때만 새로 검색해서 고르세요)</p>
+      {% endif %}
 
-      <button type="submit" class="btn btn-full">SAVE CARD</button>
-    </form>
+      <!-- 저장 폼 (POST) -->
+      <form method="post" enctype="multipart/form-data" id="lpForm">
+        {% csrf_token %}
+
+        {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+        {% if form.errors %}<div class="form-error">{{ form.errors }}</div>{% endif %}
+
+        <!-- 음악 검색 결과 -->
+        <div class="music-results">
+          {% for video in videos %}
+            <label class="music-result">
+              <input type="radio" name="video_id" value="{{ video.video_id }}" data-thumbnail="{{ video.thumbnail }}">
+              <img src="{{ video.thumbnail }}" alt="썸네일">
+              <div>
+                <p class="music-title">{{ video.title }}</p>
+                <p class="music-channel">{{ video.channel }}</p>
+              </div>
+              <input type="hidden" name="title_{{ video.video_id }}" value="{{ video.title }}">
+              <input type="hidden" name="channel_{{ video.video_id }}" value="{{ video.channel }}">
+              <input type="hidden" name="thumbnail_{{ video.video_id }}" value="{{ video.thumbnail }}">
+            </label>
+          {% empty %}
+            {% if q %}<p class="field-hint">검색 결과가 없어요.</p>{% endif %}
+          {% endfor %}
+        </div>
+
+        <!-- 피그마 입력칸 (2칸씩) -->
+        <div class="editor-fields">
+          <div class="field-group">
+            <label for="id_title">LP TITLE</label>
+            {{ form.title }}
+          </div>
+
+          <div class="field-group">
+            <span class="field-label">VISIBILITY</span>
+            <div class="visibility-toggle">
+              <label><input type="radio" name="is_public" value="true" {% if form.is_public.value %}checked{% endif %}><span>PUBLIC</span></label>
+              <label><input type="radio" name="is_public" value="false" {% if not form.is_public.value %}checked{% endif %}><span>PRIVATE</span></label>
+            </div>
+            <p class="field-hint" id="visibilityHint">친구에게 이 LP가 보여요.</p>
+          </div>
+
+          <div class="field-group">
+            <label for="id_cover_image">COVER IMAGE</label>
+            {{ form.cover_image }}
+            <p class="field-hint">안 올리면 고른 음악의 썸네일이 표지가 돼요.</p>
+          </div>
+
+          <div class="field-group">
+            <label for="id_front_template">FRONT TEMPLATE</label>
+            {{ form.front_template }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_front_bg_color">FRONT BACKGROUND</label>
+            {{ form.front_bg_color }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_front_text_color">FRONT TEXT COLOR</label>
+            {{ form.front_text_color }}
+          </div>
+
+          <div class="field-group full-width">
+            <label for="id_memo">YOUR MEMORY</label>
+            {{ form.memo }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_back_bg_color">BACK BACKGROUND</label>
+            {{ form.back_bg_color }}
+          </div>
+
+          <div class="field-group">
+            <label for="id_back_text_color">BACK TEXT COLOR</label>
+            {{ form.back_text_color }}
+          </div>
+        </div>
+      </form>
+    </section>
+
   </div>
+</main>
+
+<script>
+  // ===== 입력하면 위쪽 LP 미리보기가 바로 바뀌게 하기 =====
+  const lpFront = document.getElementById("lpFront");
+  const lpBack = document.getElementById("lpBack");
+  const previewTitle = document.getElementById("previewTitle");
+  const previewMemo = document.getElementById("previewMemo");
+
+  // 입력칸(id)에 뭔가 입력될 때마다 update 함수를 실행
+  function bind(id, update) {
+    const input = document.getElementById(id);
+    input.addEventListener("input", () => update(input.value));
+  }
+
+  bind("id_title", (value) => previewTitle.textContent = value || "Untitled LP");
+  bind("id_memo", (value) => previewMemo.textContent = value || "이곳에 나만의 영화 기록이 표시됩니다.");
+  bind("id_front_bg_color", (value) => lpFront.style.backgroundColor = value);
+  bind("id_front_text_color", (value) => lpFront.style.color = value);
+  bind("id_back_bg_color", (value) => lpBack.style.backgroundColor = value);
+  bind("id_back_text_color", (value) => lpBack.style.color = value);
+  bind("id_front_template", (value) => lpFront.className = "lp-cover lp-front template-" + value);
+
+  // ===== 표지 미리보기 =====
+    let hasUploadedCover = {% if card.cover_image %}true{% else %}false{% endif %};  // 직접 올린 이미지가 있으면 음악 썸네일보다 우선
+
+  function setCover(url) {
+    lpFront.style.backgroundImage = url ? `url("${url}")` : "";
+  }
+
+  // 음악을 고르면 그 썸네일을 표지로
+  document.querySelectorAll('input[name="video_id"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      if (!hasUploadedCover) setCover(radio.dataset.thumbnail);
+    });
+  });
+
+  // 이미지를 직접 올리면 그 이미지를 표지로
+  document.getElementById("id_cover_image").addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      hasUploadedCover = true;
+      setCover(URL.createObjectURL(file));  // 내 컴퓨터 파일을 임시 주소로 만들어 바로 보여 주기
+    }
+  });
+
+  // ===== 공개/비공개 안내 문구 =====
+  document.querySelectorAll('input[name="is_public"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      document.getElementById("visibilityHint").textContent =
+        radio.value === "true" ? "친구에게 이 LP가 보여요." : "나만 볼 수 있어요. 친구에게는 보이지 않아요.";
+    });
+  });
+</script>
 </body>
 </html>
