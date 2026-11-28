@@ -1,4 +1,3 @@
-
 import requests
 from django.conf import settings
 from django.shortcuts import render
@@ -33,7 +32,6 @@ def movie_search(request):
     movies = []
     error = ""
 
-    # 검색어가 있을 때
     if query:
         try:
             response = requests.get(
@@ -50,17 +48,13 @@ def movie_search(request):
                 timeout=10,
             )
 
-            # API 요청 실패시 예외 발생
             response.raise_for_status()
-
-            # 영화 목록 가져오기
             results = response.json().get("results", [])
 
             for movie in results:
                 release_date = movie.get("release_date", "")
                 genre_ids = movie.get("genre_ids", [])
 
-                # 영화 정보
                 movies.append({
                     "id": movie.get("id"),
                     "title": movie.get("title", "제목 없음"),
@@ -75,7 +69,6 @@ def movie_search(request):
                 })
 
         except requests.RequestException:
-            # 네트워크 또는 API 요청 오류
             error = "영화 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
 
     return render(request, "search.html", {
@@ -104,8 +97,11 @@ def movie_detail(request, movie_id):
         response.raise_for_status()
         movie = response.json()
 
-    except requests.RequestException:
-        error = "영화 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
+    except requests.RequestException as e:
+        if e.response is not None and e.response.status_code == 404:
+            error = "해당 영화를 찾을 수 없습니다."
+        else:
+            error = "영화 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
 
     return render(request, "detail.html", {
         "movie": movie,
